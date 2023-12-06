@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2023"
+    ],
+    "target": "es2023",
+    "moduleDetection": "force",
+    "moduleResolution": "nodenext",
+    "isolatedModules": true
+  }
+}
