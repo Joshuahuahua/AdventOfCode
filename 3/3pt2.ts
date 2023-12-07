@@ -139,48 +139,68 @@ const data = `.............65..................998.........453..................
 ...........$.....*................115..................400................=......1.292..@602..=.................321..............728........
 ..579..410..3..44.291..........................538..................148....873.................461....................................722...`
 
+const test_data = `..........
+467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..`
+
 function getWholeNumber(str: string, index: number) {
+  if (!str[index].match(/[0-9]/)) { return 0 } // Return 0 if not num
+
   // Count digits to the right
   const proceedingDigitCount = str.substring(index).match(/^[0-9]+/)[0].length - 1
-  
+
   // Get Left-most index
-  while (!isNaN(+str[index - 1])) { index-- } 
+  while (!isNaN(+str[index - 1])) { index-- }
 
   const fullNumber = parseInt(str.substring(index).match(/^[0-9]+/))
-  return [fullNumber, proceedingDigitCount]
+  return fullNumber
 }
 
-function hasSymbolNeighbor(matrix: string[], x: number, y: number) {
-  const symbolExp = new RegExp(/[^0-9.]/)
-  const getLeftAndRight = (row, x) => row.substring(x > 0 ? x - 1 : x, x < row.length + 1 ? x + 2 : x)
-
-  // Check all characters cardinally and intercardinally around (x,y)
-  return (
-    (y > 0 && symbolExp.test(getLeftAndRight(matrix[y - 1], x))) ||              // Row Before
-    (symbolExp.test(getLeftAndRight(matrix[y], x))) ||                           // Current Row
-    (y < matrix.length - 1 && symbolExp.test(getLeftAndRight(matrix[y + 1], x))) // Row After
-  )
-}
-
-function getPartNumSum(input_raw) {
+function getGearRatios(input_raw) {
   const input: string[] = Array.isArray(input_raw) ? input_raw : input_raw.split('\n')
   // Total each row
-  const rowSums: number[] = input.map((row, iRow) => {
-    let partNumbers: number[] = [];
-    // Iterate through chars in row
-    for (let iChar = 0; iChar <= row.length; iChar++) {
-      // If the current char is a number with a neighboring symbol
-      if (!isNaN(+row[iChar]) && hasSymbolNeighbor(input, iChar, iRow)) {
-        const [wholeNumber, skip] = getWholeNumber(row, iChar)
-        partNumbers.push(wholeNumber)
-        iChar += skip // Jump to end of number
+  const totalGearRatios: number[] = input.map((row, iRow) => {
+    let tempRow = [...row] // Split row: string into char[]
+    let gearRatios: number[] = [];
+    // For current gear
+    while (tempRow.indexOf('*') >= 0) {
+      const iGear = tempRow.indexOf('*')
+      let adjacentNumbers: number[] = [];
+
+      if (iRow > 0) { // Check Row Above
+        adjacentNumbers.push(getWholeNumber(input[iRow - 1], iGear))                                            // TM
+        if (!adjacentNumbers.at(-1)) {
+          adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow - 1], iGear - 1) : 0)                      // TL
+          adjacentNumbers.push(iGear < input[iRow - 1].length - 1 ? getWholeNumber(input[iRow - 1], iGear + 1) : 0) // TR
+        }
       }
+
+      adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow], iGear - 1) : 0)                      // L
+      adjacentNumbers.push(iGear < input[iRow - 1].length - 1 ? getWholeNumber(input[iRow], iGear + 1) : 0) // R
+
+      if (iRow < input.length - 1) { // Check Row Below
+        adjacentNumbers.push(getWholeNumber(input[iRow + 1], iGear))                                            // TM
+        if (!adjacentNumbers.at(-1)) {
+          adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow + 1], iGear - 1) : 0)                      // TL
+          adjacentNumbers.push(iGear < input[iRow + 1].length - 1 ? getWholeNumber(input[iRow + 1], iGear + 1) : 0) // TR
+        }
+      }
+      if (adjacentNumbers.length === 2) { gearRatios.push(adjacentNumbers.reduce((a, b) => a * b)) }
+      tempRow[tempRow.indexOf('*')] = '.' // Progress to next gear
     }
-    return partNumbers.length ? partNumbers.reduce((a, b) => a + b) : 0
+    return gearRatios.length ? totalGearRatios.reduce((a, b) => a + b) : 0
   })
 
-  return rowSums.reduce((a, b) => a + b)
+  return totalGearRatios.reduce((a, b) => a + b)
 }
 
-const sumNum = getPartNumSum(data)
+const sumNum = getGearRatios(test_data)
 console.log('\nTotal :', sumNum)
