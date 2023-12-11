@@ -152,16 +152,11 @@ const test_data = `..........
 .664.598..`
 
 function getWholeNumber(str: string, index: number) {
-  if (!str[index].match(/[0-9]/)) { return 0 } // Return 0 if not num
-
-  // Count digits to the right
-  const proceedingDigitCount = str.substring(index).match(/^[0-9]+/)[0].length - 1
-
-  // Get Left-most index
+  if (!str[index].match(/[0-9]/)) { return NaN } // Return 0 if not num
+  // Move index to start of number
   while (!isNaN(+str[index - 1])) { index-- }
 
-  const fullNumber = parseInt(str.substring(index).match(/^[0-9]+/))
-  return fullNumber
+  return parseInt(str.substring(index).match(/^[0-9]+/))
 }
 
 function getGearRatios(input_raw) {
@@ -176,31 +171,33 @@ function getGearRatios(input_raw) {
       let adjacentNumbers: number[] = [];
 
       if (iRow > 0) { // Check Row Above
-        adjacentNumbers.push(getWholeNumber(input[iRow - 1], iGear))                                            // TM
-        if (!adjacentNumbers.at(-1)) {
-          adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow - 1], iGear - 1) : 0)                      // TL
+        adjacentNumbers.push(getWholeNumber(input[iRow - 1], iGear))                                                // TM
+        if (!adjacentNumbers.at(-1)) { // If no number is found directly above it
+          adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow - 1], iGear - 1) : 0)                          // TL
           adjacentNumbers.push(iGear < input[iRow - 1].length - 1 ? getWholeNumber(input[iRow - 1], iGear + 1) : 0) // TR
         }
       }
 
-      adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow], iGear - 1) : 0)                      // L
-      adjacentNumbers.push(iGear < input[iRow - 1].length - 1 ? getWholeNumber(input[iRow], iGear + 1) : 0) // R
+      // Check left and right
+      adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow], iGear - 1) : 0)                                  // L
+      adjacentNumbers.push(iGear < input[iRow - 1].length - 1 ? getWholeNumber(input[iRow], iGear + 1) : 0)         // R
 
       if (iRow < input.length - 1) { // Check Row Below
-        adjacentNumbers.push(getWholeNumber(input[iRow + 1], iGear))                                            // TM
-        if (!adjacentNumbers.at(-1)) {
-          adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow + 1], iGear - 1) : 0)                      // TL
+        adjacentNumbers.push(getWholeNumber(input[iRow + 1], iGear))                                                // TM
+        if (!adjacentNumbers.at(-1)) { // If no number is found directly below it
+          adjacentNumbers.push(iGear > 0 ? getWholeNumber(input[iRow + 1], iGear - 1) : 0)                          // TL
           adjacentNumbers.push(iGear < input[iRow + 1].length - 1 ? getWholeNumber(input[iRow + 1], iGear + 1) : 0) // TR
         }
       }
-      if (adjacentNumbers.length === 2) { gearRatios.push(adjacentNumbers.reduce((a, b) => a * b)) }
+
+      adjacentNumbers = adjacentNumbers.filter(x => !isNaN(x))
+      if (adjacentNumbers.length === 2) { gearRatios.push(adjacentNumbers.reduce((a, b) => a * b)) } // Push if valid gear ratio
       tempRow[tempRow.indexOf('*')] = '.' // Progress to next gear
     }
-    return gearRatios.length ? totalGearRatios.reduce((a, b) => a + b) : 0
+    return gearRatios.length ? gearRatios.reduce((a, b) => a + b) : 0
   })
-
   return totalGearRatios.reduce((a, b) => a + b)
 }
 
-const sumNum = getGearRatios(test_data)
+const sumNum = getGearRatios(data)
 console.log('\nTotal :', sumNum)
