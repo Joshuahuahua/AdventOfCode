@@ -215,12 +215,21 @@ function calculateTotalWinnings(input: string) {
     const card_number = +cards[i].split(":")[0].match(/[0-9]/)
     const all_numbers = cards[i].replace(/Card.*: *|\|/g, '').replace(/ {2,}/g, " ").split(' ').map(x => +x)
     // reduce it down to just the matches
-    const matches = all_numbers.filter(x => all_numbers.filter(n => n === x).length > 1).length/2
-    console.log(matches)
-    
+    const matches = all_numbers.filter(x => all_numbers.filter(n => n === x).length > 1).length / 2
+    // console.log(matches)
+    // console.log(cards)
+    if (matches > 0) {
+
+      for (let n = 1; n <= matches; n++) {
+        cards.push(cards[card_number - 1 + n])
+      }
+      console.log(`Current: ${i + 1} | Cards: ${cards.length}                \r`)
+      // console.log(cards)
+    }
+
   }
-  return winnings.reduce((a, b) => a + b)
+  return cards.length // winnings.reduce((a, b) => a + b)
 }
 
-const answer = calculateTotalWinnings(test_data)
+const answer = calculateTotalWinnings(data)
 console.log("Answer:", answer)
